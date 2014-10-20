@@ -6,14 +6,19 @@ module ActionMailerAutoUrlOptions
 
     included do
       before_filter :make_action_mailer_use_request_host_and_protocol
+      after_filter :clear_action_mailer_thread_local
     end
 
     private
 
-    # Via http://makandracards.com/makandra/1353
     def make_action_mailer_use_request_host_and_protocol
-      ActionMailer::Base.default_url_options[:protocol] = request.protocol
-      ActionMailer::Base.default_url_options[:host] = request.host_with_port
+      Thread.current[:actionmailer_request_host]     = request.host_with_port
+      Thread.current[:actionmailer_request_protocol] = request.protocol
+    end
+
+    def clear_action_mailer_thread_local
+      Thread.current[:actionmailer_request_host]     = nil
+      Thread.current[:actionmailer_request_protocol] = nil
     end
   end
 
